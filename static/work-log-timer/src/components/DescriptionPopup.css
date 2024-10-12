@@ -1,0 +1,54 @@
+/* Styles for centering and popup */
+.main-container {
+    position: fixed;               /* Fixed positioning to center on screen */
+    top: 50%;                      /* Center vertically */
+    left: 50%;                     /* Center horizontally */
+    transform: translate(-50%, -50%); /* Adjusts centering from the middle */
+    width: 60%;                    /* 60% width of the viewport */
+    height: 50%;                   /* 50% height of the viewport */
+    background-color: rgba(0, 0, 0, 0.85); /* Slightly transparent black */
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.5); /* Shadow for depth */
+    padding: 20px;                 /* General padding */
+    border-radius: 10px;           /* Rounded corners */
+    color: white;                  /* White text color */
+    display: flex;                 /* Flexbox for vertical alignment */
+    flex-direction: column;        /* Stack items vertically */
+    justify-content: center;       /* Center content vertically */
+}
+
+/* Title styles */
+h3 {
+    text-align: left;              /* Align title to the left */
+    margin: 0 0 20px 20px;         /* Margin from left and bottom */
+}
+
+/* Input box styling */
+.input-box {
+    width: calc(100% - 40px);      /* Full width minus padding */
+    margin: 0 20px;                /* 20px padding on left and right */
+    padding: 10px;                 /* Padding inside input */
+    border: none;                  /* No border */
+    border-radius: 5px;            /* Rounded corners */
+    background-color: #333;        /* Dark input background */
+    color: white;                  /* White text color */
+    font-size: 16px;               /* Larger text */
+}
+
+/* Submit button styling */
+.submit-btn {
+    margin-top: 20px;              /* Spacing above button */
+    align-self: center;            /* Center align button horizontally */
+    background-color: blue;        /* Blue background */
+    color: white;                  /* White text */
+    padding: 10px 20px;            /* Button padding */
+    border: none;                  /* Remove border */
+    border-radius: 5px;            /* Rounded corners */
+    cursor: pointer;               /* Pointer cursor */
+    font-size: 16px;               /* Font size */
+    font-weight: bold;             /* Bold text */
+}
+
+/* Add hover effect on the button */
+.submit-btn:hover {
+    background-color: darkblue;    /* Darker blue on hover */
+}

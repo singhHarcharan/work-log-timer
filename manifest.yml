@@ -1,0 +1,24 @@
+modules:
+  jira:issuePanel:
+    - key: hello-world-hello-world-panel
+      resource: main
+      resolver:
+        function: resolver
+      viewportSize: medium
+      title: work-log-timer-hs
+      icon: https://developer.atlassian.com/platform/forge/images/issue-panel-icon.svg
+  function:
+    - key: resolver
+      handler: index.handler
+resources:
+  - key: main
+    path: static/work-log-timer/build
+    tunnel: 
+      port: 3000
+permissions:
+  scopes:
+    - read:jira-work
+app:
+  runtime:
+    name: nodejs20.x
+  id: ari:cloud:ecosystem::app/32136417-14ae-4434-b0a7-f37839c76bab
