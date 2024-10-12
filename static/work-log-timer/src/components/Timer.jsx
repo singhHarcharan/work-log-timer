@@ -155,6 +155,7 @@ function Timer() {
                 }}>
                     <ButtonContainer {...{ startButton, handleStart, handleStop, handleReset, handleLog, isButtonEnabled }} />
                     {/* Short form of ternary operator */}
+                    {/* Adding this comment to test github changes */}
                     {popUp && (<DescriptionPopup {...{ setPopUp }} />)}
                 </div>
 
