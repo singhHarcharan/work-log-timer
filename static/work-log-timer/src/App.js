@@ -37,13 +37,16 @@ function App() {
     return <div>Loading...</div>;
   }
   const labels = data.map((label) => <div>{label}</div>);
+
   return (
     <div>
       <Timer />
+
+      {/* <div className="App">
+        <h1>Hello frontend</h1>
+      </div> */}
+
     </div>
-    // <div className="main-component">
-    //   Hello world
-    // </div>
   );
 }
 
