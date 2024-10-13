@@ -4,7 +4,6 @@ import { FiRefreshCw } from "react-icons/fi";
 import { useEffect, useRef, useState } from "react";
 import DescriptionPopup from "./DescriptionPopup";
 
-
 let initialTime = {
     d: 0,
     h: 0,
