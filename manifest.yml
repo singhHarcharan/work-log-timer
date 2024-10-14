@@ -18,6 +18,15 @@ resources:
 permissions:
   scopes:
     - read:jira-work
+  content:
+    scripts:
+      - unsafe-inline
+    styles:
+      - unsafe-inline
+  external:
+    fetch:
+      backend:
+        - 'https://fakestoreapi.com/products'
 app:
   runtime:
     name: nodejs20.x

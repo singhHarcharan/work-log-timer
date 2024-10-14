@@ -1,8 +1,8 @@
 import ButtonContainer from "./ButtonContainer";
-import MainScreen from "./MainScreen";
 import { FiRefreshCw } from "react-icons/fi";
 import { useEffect, useRef, useState } from "react";
 import DescriptionPopup from "./DescriptionPopup";
+import { invoke } from '@forge/bridge'
 
 let initialTime = {
     d: 0,
@@ -41,7 +41,7 @@ function Timer() {
     const [isRunning, setIsRunning] = useState(false); // Initially false
     const [popUp, setPopUp] = useState(false);
     const timerRef = useRef(null);
-
+    
     useEffect(() => {
         if (isRunning) {
             timerRef.current = setInterval(() => {
@@ -58,7 +58,8 @@ function Timer() {
         setTime(secondsToTimeFormat(seconds));
     }, [seconds])
 
-    function handleStart() {
+    async function handleStart() {
+        console.log("Handle start Button Called");
         if (!isRunning) {
             setIsRunning(true);
             setStartButton("Start");
@@ -72,21 +73,24 @@ function Timer() {
             });
             // After hittin stop buttons, 'start' should become 'resume'
             // but after hitting 'resume', it should become 'start' again
+
+            // Store current State of Time in Backend...
+            await invoke('SET TimeLog');
         }
     };
 
-    function handleStop() {
+    async function handleStop() {
         if (isRunning) {
             setIsRunning(false);
             setStartButton("Resume");
             // If Stop Button is clicked, Disable 'Stop' and enable all other three buttons
+            // Make Start Button as "Resume" Button
             setButtonEnabled({
                 Start: true,
                 Stop: false,
                 Log: true,
                 Reset: true
             });
-            // Make Start Button as "Resume" Button
         }
     };
 
@@ -104,13 +108,17 @@ function Timer() {
     }
 
     function handleLog() {
-        console.log("Current time is: " + time.d + "days " + time.h + "hours " + time.m + "minutes " + time.s + "seconds ");
-        // PopUp a react component
-        // alert("Current time is: " + time.d + "days " + time.h + "hours  " + time.m + "minutes " + time.s + "seconds ");
-        //  If Log Button is clicked, Reset the clock and enable 'start' button only
-        handleReset();
-        // Open Pop-up element
-        setPopUp(true);
+
+        // One can click Log button only, if the (current time != initialTime)
+        if(time != initialTime) {
+            console.log("Current time is: " + time.d + "days " + time.h + "hours " + time.m + "minutes " + time.s + "seconds ");
+            // PopUp a react component
+            // alert("Current time is: " + time.d + "days " + time.h + "hours  " + time.m + "minutes " + time.s + "seconds ");
+            //  If Log Button is clicked, Reset the clock and enable 'start' button only
+            handleReset();
+            // Open Pop-up element
+            setPopUp(true);
+        }
     }
 
     return <div>
