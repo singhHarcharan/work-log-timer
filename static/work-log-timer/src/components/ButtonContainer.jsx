@@ -1,16 +1,20 @@
 import { useEffect, useState } from 'react';
 import './ButtonContainer.css'
 
-// const [backendMessage, setBackendMessage] = useState('');
-// useEffect(() => {
-//     const result = fetch('http://localhost:5000/')
-//     .then(
-//         setBackendMessage(result))
-// }, [])
-
-
-// const result = await fetch('https://fakestoreapi.com/products');
-// console.log(result)
+let normalButtonStyle = {
+    backgroundColor: "#0a66e4",
+    border: ".1rem solid #fff",
+    borderRadius: ".3rem",
+    color: "#fff",
+    fontSize: ".9rem",
+    maxWidth: "10rem",
+    minWidth: "10rem",
+    padding: ".48rem",
+};
+let disabledButtonStyle = {
+    ...normalButtonStyle,
+    backgroundColor: "#d3d3d3",
+}
 
 function ButtonContainer({ 
     startButton, 
@@ -20,28 +24,12 @@ function ButtonContainer({
     handleLog, 
     isButtonEnabled }) 
 {
-    let normalButtonStyle = {
-        backgroundColor: "#0a66e4",
-        border: ".1rem solid #fff",
-        borderRadius: ".3rem",
-        color: "#fff",
-        fontSize: ".9rem",
-        maxWidth: "10rem",
-        minWidth: "10rem",
-        padding: ".58rem",
-    };
-    let disabledButtonStyle = {
-        ...normalButtonStyle,
-        backgroundColor: "#d3d3d3",
-    }
-    
     return <div className='button-group' style={{
         display: 'flex',
         flexDirection:'column'
     }}>
         <button className='start-button' style={isButtonEnabled.Start? normalButtonStyle : disabledButtonStyle} onClick={handleStart} >
             {startButton}
-            {/* {backendMessage} */}
         </button>
         <button className='stop-button' style={isButtonEnabled.Stop? normalButtonStyle: disabledButtonStyle} onClick={handleStop} >
             Stop
@@ -52,6 +40,9 @@ function ButtonContainer({
         <button className='reset-button' style={isButtonEnabled.Reset? normalButtonStyle: disabledButtonStyle} onClick={handleReset}>
             Reset
         </button>
+        <div>
+            Designed by HS
+        </div>
     </div>
 }
 
