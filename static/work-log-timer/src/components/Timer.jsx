@@ -3,6 +3,7 @@ import { FiRefreshCw } from "react-icons/fi";
 import { useEffect, useRef, useState } from "react";
 import DescriptionPopup from "./DescriptionPopup";
 import { invoke } from '@forge/bridge'
+import { storage } from "@forge/api";
 
 let initialTime = {
     d: 0,
@@ -41,7 +42,7 @@ function Timer() {
     const [isRunning, setIsRunning] = useState(false); // Initially false
     const [popUp, setPopUp] = useState(false);
     const timerRef = useRef(null);
-    
+
     useEffect(() => {
         if (isRunning) {
             timerRef.current = setInterval(() => {
@@ -60,27 +61,38 @@ function Timer() {
 
     async function handleStart() {
         console.log("Handle start Button Called");
+
         if (!isRunning) {
+            
+            // If 'Start' button was clicked earlier
+            // Then get 'newTime' in seconds and setSeconds(newTime);
+            let startButtonClickedBefore = await storage.get(uniqueKey);
+            
             setIsRunning(true);
             setStartButton("Start");
             setPopUp(false);
             // If Start Button is clicked, Disable 'start' and enable all other three buttons
+            // After hittin stop buttons, 'start' should become 'resume'
+            // but after hitting 'resume', it should become 'start' again
             setButtonEnabled({
                 Start: false,
                 Stop: true,
                 Log: true,
                 Reset: true
             });
-            // After hittin stop buttons, 'start' should become 'resume'
-            // but after hitting 'resume', it should become 'start' again
-
             // Store current State of Time in Backend...
-            await invoke('SET TimeLog');
+            try {
+                await invoke('SET TimeLog');
+            } catch (error) {
+                console.error('Error invoking function:', error);
+            }
         }
     };
 
     async function handleStop() {
+        console.log("Handle start Button Called");
         if (isRunning) {
+            console.log("Entered in handleStop function");
             setIsRunning(false);
             setStartButton("Resume");
             // If Stop Button is clicked, Disable 'Stop' and enable all other three buttons
@@ -91,10 +103,15 @@ function Timer() {
                 Log: true,
                 Reset: true
             });
+            try {
+                await invoke('UPDATE TimeLog');
+            } catch (error) {
+                console.error('Error invoking function:', error);
+            }
         }
     };
 
-    function handleReset() {
+    async function handleReset() {
         setSeconds(0);
         setIsRunning(false);
         setStartButton("Start");
@@ -105,12 +122,18 @@ function Timer() {
             Log: false,
             Reset: false
         })
+        // Delete the old Timer from Storage
+        try {
+            await invoke('RESET TimeLog');
+        } catch (error) {
+            console.error('Error invoking function:', error);
+        }
     }
 
-    function handleLog() {
+    async function handleLog() {
 
         // One can click Log button only, if the (current time != initialTime)
-        if(time != initialTime) {
+        if (time != initialTime) {
             console.log("Current time is: " + time.d + "days " + time.h + "hours " + time.m + "minutes " + time.s + "seconds ");
             // PopUp a react component
             // alert("Current time is: " + time.d + "days " + time.h + "hours  " + time.m + "minutes " + time.s + "seconds ");
@@ -118,6 +141,12 @@ function Timer() {
             handleReset();
             // Open Pop-up element
             setPopUp(true);
+        }
+        // Delete the old Timer from Storage
+        try {
+            await invoke('RESET TimeLog');
+        } catch (error) {
+            console.error('Error invoking function:', error);
         }
     }
 
