@@ -3,7 +3,7 @@ import { FiRefreshCw } from "react-icons/fi";
 import { useEffect, useRef, useState } from "react";
 import DescriptionPopup from "./DescriptionPopup";
 import { invoke } from '@forge/bridge'
-import { storage } from "@forge/api";
+// import { storage } from "@forge/api";
 
 let initialTime = {
     d: 0,
@@ -34,15 +34,49 @@ const buttonState = {
     Reset: false
 }
 
+// Check if the TimeLog is already present in Forge Storage 
+const isTimePresent = async () => {
+    console.log("Entered in isTimePresent function");
+    let isPresent = false;
+    try {
+        isPresent = await invoke('isTimeLogPresent');
+    } catch (error) {
+        console.error('Error invoking function:', error);
+    }
+    return isPresent;
+}
+
+const timeToDisplay = async () => {
+    let timeStored = 0;
+    if (await isTimePresent()) {  // Await isTimePresent
+        try {
+            const { timeToDisplay, isRunning } = await invoke('GET TimeLog'); // Fetch both time and running status
+            timeStored = timeToDisplay;
+            return { time: secondsToTimeFormat(timeStored), isRunning };
+        } catch (error) {
+            console.error('Error invoking function:', error);
+        }
+    } 
+    return { time: initialTime, isRunning: false };
+};
+
+// const startButtonState = async () => {
+//     let {timeToDisplayValue, timerRunning} = await timeToDisplay();
+//     if(timerRunning)    return "Start";
+//     else                return "Resume"
+// }
+
 function Timer() {
     const [seconds, setSeconds] = useState(0);
     const [time, setTime] = useState(initialTime);
     const [isButtonEnabled, setButtonEnabled] = useState(buttonState);
+    // const [startButton, setStartButton] = useState(startButtonState);
     const [startButton, setStartButton] = useState("Start");
     const [isRunning, setIsRunning] = useState(false); // Initially false
     const [popUp, setPopUp] = useState(false);
     const timerRef = useRef(null);
 
+    // MAIN COUNTER
     useEffect(() => {
         if (isRunning) {
             timerRef.current = setInterval(() => {
@@ -59,14 +93,49 @@ function Timer() {
         setTime(secondsToTimeFormat(seconds));
     }, [seconds])
 
+    // When 'Browser' is re-loaded
+    // Fetch the time from forge storage if present
+    useEffect(() => {
+        async function fetchTime() {
+            const { time: fetchedTime, isRunning: wasRunning } = await timeToDisplay();
+            setTime(fetchedTime);
+
+            // If 'timer' was running at the backend
+            if (wasRunning) {
+                // Reverse conversion from 'time format' to 'seconds'
+                setSeconds(fetchedTime.d * 86400 + fetchedTime.h * 3600 + fetchedTime.m * 60 + fetchedTime.s); 
+                setIsRunning(true); 
+                setStartButton("Start");
+                setButtonEnabled({ Start: false, Stop: true, Log: true, Reset: true });
+            }
+            // If 'timer' was 'paused'
+            else {
+                setSeconds(fetchedTime.d * 86400 + fetchedTime.h * 3600 + fetchedTime.m * 60 + fetchedTime.s); 
+                // Handling Colors and States of Buttons on the behalf of 'time' stored.
+                if(time == initialTime) {
+                    setStartButton("Start");
+                    setButtonEnabled(buttonState);  // Default button State
+                }
+                // This condition needs to be re-checked
+                // Coz it's not working properly, if we pause the time and refresh page.
+                else {
+                    setStartButton("Resume");
+                    setButtonEnabled({ Start: false, Stop: false, Log: true, Reset: true });
+                }
+            }
+        }
+        fetchTime();
+    }, []);
+
+    // BUTTONS HANDLING FUNCTIONS. 
     async function handleStart() {
-        console.log("Handle start Button Called");
+        console.log("handleStart Function Called");
 
         if (!isRunning) {
             
             // If 'Start' button was clicked earlier
             // Then get 'newTime' in seconds and setSeconds(newTime);
-            let startButtonClickedBefore = await storage.get(uniqueKey);
+            // let startButtonClickedBefore = await storage.get(uniqueKey);
             
             setIsRunning(true);
             setStartButton("Start");
@@ -74,15 +143,10 @@ function Timer() {
             // If Start Button is clicked, Disable 'start' and enable all other three buttons
             // After hittin stop buttons, 'start' should become 'resume'
             // but after hitting 'resume', it should become 'start' again
-            setButtonEnabled({
-                Start: false,
-                Stop: true,
-                Log: true,
-                Reset: true
-            });
+            setButtonEnabled({ Start: false, Stop: true, Log: true, Reset: true });
             // Store current State of Time in Backend...
             try {
-                await invoke('SET TimeLog');
+                await invoke('SET TimeLog', { seconds }); // Store the current second in forge storage
             } catch (error) {
                 console.error('Error invoking function:', error);
             }
@@ -90,21 +154,15 @@ function Timer() {
     };
 
     async function handleStop() {
-        console.log("Handle start Button Called");
         if (isRunning) {
             console.log("Entered in handleStop function");
             setIsRunning(false);
             setStartButton("Resume");
             // If Stop Button is clicked, Disable 'Stop' and enable all other three buttons
             // Make Start Button as "Resume" Button
-            setButtonEnabled({
-                Start: true,
-                Stop: false,
-                Log: true,
-                Reset: true
-            });
+            setButtonEnabled({Start: true, Stop: false, Log: true, Reset: true });
             try {
-                await invoke('UPDATE TimeLog');
+                await invoke('UPDATE TimeLog', { seconds }); // Store updated time in forge storage
             } catch (error) {
                 console.error('Error invoking function:', error);
             }
@@ -116,12 +174,7 @@ function Timer() {
         setIsRunning(false);
         setStartButton("Start");
         // If Reset Button is clicked, Enable 'start' and diable all other three buttons
-        setButtonEnabled({
-            Start: true,
-            Stop: false,
-            Log: false,
-            Reset: false
-        })
+        setButtonEnabled({ Start: true, Stop: false, Log: false, Reset: false })
         // Delete the old Timer from Storage
         try {
             await invoke('RESET TimeLog');
