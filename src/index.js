@@ -26,70 +26,89 @@ resolver.define('fetchLabels', async (req) => {
 // ---------------------------------------------------
 // -------------- User State Persistance--------------
 resolver.define('SET TimeLog', async (req) => {
-  console.log('SET TimeLog Function Called Successfully')
+  console.log('SET TimeLog function called successfully');
 
-  // Store the currentTime as {Key: CurrentTime, seconds}
-  // 'seconds' will be updated only if 'stop' button is clicked
-  // Then 'currTime' will become 'currentTime' + 'seconds'
+  // Store the start time and elapsed seconds when the timer starts
+  let currTimeLog = Math.floor(new Date().getTime() / 1000); // Store current time in seconds
+  let seconds = req.payload.seconds || 0;  // If 'seconds' is passed, use that, otherwise default to 0
 
-  // Step 1: If Button is pressed for the first time, store currentTime
-  //          as {'uniqueKey' : currentTime, seconds}
-
-  // Step 2: If 'Stop' button is clicked, find the 'uniqueKey' value &
-  // update 'seconds'
-
-  // Step 3: If 'Log' or 'Reset' Button is clicked, then remove 'uniqueKey'
-  let currTimeLog = new Date().getTime() / 1000;
-  let seconds = 0;
-
-  // If 'Start' button is pressed for the first time
+  // If storage is empty (timer starting for the first time)
   let value = await storage.get(uniqueKey);
   if (value == null) {
-    await storage.set(uniqueKey, [currTimeLog, seconds])
-  }
-  else {
-    // set new log of 'currTime' with 'updatedSeconds' in storage.
-    let [prevTimeLog, updatedSeconds] = value;
-    let newTimeLog = new Date().getTime() / 1000;
-    await storage.set(uniqueKey, [newTimeLog, updatedSeconds])
+      await storage.set(uniqueKey, [currTimeLog, seconds]);
+  } else {
+      // If there's already a time log present, update the start time and keep previous seconds
+      let [prevTimeLog, updatedSeconds] = value;
+      await storage.set(uniqueKey, [currTimeLog, updatedSeconds]);
   }
 
-  console.log("ON Clicking Start, Stored values are ");
-  let storedValue = await storage.get(uniqueKey);
-  console.log(storedValue);
-})
+  console.log("ON Clicking Start, Stored values are ", await storage.get(uniqueKey));
+});
 
 
-
+// IF the 'browser' is reloaded, check the presence of 'timer' in storage
+// and render the 'timer' at frontend, if present.
 resolver.define('GET TimeLog', async (req) => {
-  console.log('GET TimeLog function called Successfully');
-  let [, seconds] = await storage.get(uniqueKey);
-  return seconds;
-})
+  console.log('GET TimeLog function called successfully');
+  
+  let value = await storage.get(uniqueKey);
 
-resolver.define('UPDATE TimeLog', async (req) => {
-  console.log('UPDATE TimeLog function called Successfully');
-  // If 'Stop' Button is pressed, then update 'seconds' with 'currTimeLog'
-  // means 'seconds' can be used again to start timer again
-  const [oldTimeLog, alreadyPresentSeconds] = await storage.get(uniqueKey);
-  if (oldTimeLog != null) {
-    // let currTimeInSeconds = timerService.timeLogToSeconds(new Date().getTime()/1000);
-    let currTimeLog = new Date().getTime() / 1000;
-    // console.log("Current Time Log in seconds is " + currTimeLog);
-    // console.log("Difference Between current and prev is " + (currTimeLog - oldTimeLog))
-    let updatedSeconds = alreadyPresentSeconds + (currTimeLog - oldTimeLog);
-    await storage.set(uniqueKey, [oldTimeLog, updatedSeconds])
-
-    // console.log("ON Clicking Stop, Stored values are ");
-    // let [, totalTime] = await storage.get(uniqueKey);
-    // console.log("Final Seconds are " + totalTime);
+  // If No clock was running at the backend
+  if (value == null) {
+      return { elapsed: 0, isRunning: false }; 
   }
+
+  let [startTimeLog, storedSeconds] = value;
+  // Calculate how much time has passed since the start time (only if the timer is running)
+  let currTime = Math.floor(new Date().getTime() / 1000);
+  let newTimeToDisplay = storedSeconds;
+  let isRunning = false;
+
+  // If the timer is still running, add the difference to the stored time
+  if (startTimeLog !== null) {
+      newTimeToDisplay += (currTime - startTimeLog);
+      isRunning = true;
+  }
+
+  console.log("New Time to display:", newTimeToDisplay);
+  return { timeToDisplay: newTimeToDisplay, isRunning: isRunning };
+});
+
+
+// This function simply Checks whether the 'TimeLog' is already present in
+// Storage or not...
+resolver.define('isTimeLogPresent', async (req) => {
+  let value = await storage.get(uniqueKey);
+  if(value != null) return true;
+  return false;
 })
+
+// If 'stop' button is pressed, then update the 'timeLog' with 'updatedSeconds'
+resolver.define('UPDATE TimeLog', async (req) => {
+  console.log('UPDATE TimeLog function called successfully');
+  
+  let value = await storage.get(uniqueKey);
+  if (value != null) {
+      let [startTimeLog, storedSeconds] = value;
+      // Calculate the elapsed time since the last start
+      let currTimeLog = Math.floor(new Date().getTime() / 1000);
+      let newElapsedTime = currTimeLog - startTimeLog;
+      // Update the stored seconds with the new elapsed time and clear the start time
+      await storage.set(uniqueKey, [null, storedSeconds + newElapsedTime]);
+
+      console.log("ON Clicking Stop, Stored values are ", await storage.get(uniqueKey));
+  }
+});
+
+
 
 resolver.define('RESET TimeLog', async (req) => {
-  console.log('RESET TimeLog function called Successfully');
+  console.log('RESET TimeLog function called successfully');
+  // Delete the time log from Forge storage
   await storage.delete(uniqueKey);
-})
+  console.log('Timer has been reset and removed from storage.');
+});
+
 
 
 export const handler = resolver.getDefinitions();
