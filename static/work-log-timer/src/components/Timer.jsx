@@ -110,18 +110,24 @@ function Timer() {
             }
             // If 'timer' was 'paused'
             else {
-                setSeconds(fetchedTime.d * 86400 + fetchedTime.h * 3600 + fetchedTime.m * 60 + fetchedTime.s); 
-                // Handling Colors and States of Buttons on the behalf of 'time' stored.
-                if(time == initialTime) {
-                    setStartButton("Start");
-                    setButtonEnabled(buttonState);  // Default button State
-                }
-                // This condition needs to be re-checked
-                // Coz it's not working properly, if we pause the time and refresh page.
-                else {
-                    setStartButton("Resume");
-                    setButtonEnabled({ Start: false, Stop: false, Log: true, Reset: true });
-                }
+                // console.log("Entered in else condition");
+                // setSeconds(fetchedTime.d * 86400 + fetchedTime.h * 3600 + fetchedTime.m * 60 + fetchedTime.s); 
+                // // Handling Colors and States of Buttons on the behalf of 'time' stored.
+                // if(time == initialTime) {
+                //     console.log("Enterd in first condition");
+                //     setStartButton("Start");
+                //     setButtonEnabled(buttonState);  // Default button State
+                // }
+                // // This condition needs to be re-checked
+                // // Coz it's not working properly, if we pause the time and refresh page.
+                // else {
+                //     console.log("Enterd in second condition");
+                //     setStartButton("Resume");
+                //     setButtonEnabled({ Start: true, Stop: false, Log: true, Reset: true });
+                // }
+                console.log("Enterd in second condition");
+                setStartButton("Resume");
+                setButtonEnabled({ Start: true, Stop: false, Log: true, Reset: true });
             }
         }
         fetchTime();
@@ -137,19 +143,22 @@ function Timer() {
             // Then get 'newTime' in seconds and setSeconds(newTime);
             // let startButtonClickedBefore = await storage.get(uniqueKey);
             
+            const { time: fetchedTime, isRunning: wasRunning } = await timeToDisplay();
+            setTime(fetchedTime);
+            setSeconds(fetchedTime.d * 86400 + fetchedTime.h * 3600 + fetchedTime.m * 60 + fetchedTime.s); 
             setIsRunning(true);
+            setButtonEnabled({ Start: false, Stop: true, Log: true, Reset: true });
             setStartButton("Start");
-            setPopUp(false);
             // If Start Button is clicked, Disable 'start' and enable all other three buttons
             // After hittin stop buttons, 'start' should become 'resume'
             // but after hitting 'resume', it should become 'start' again
-            setButtonEnabled({ Start: false, Stop: true, Log: true, Reset: true });
             // Store current State of Time in Backend...
             try {
                 await invoke('SET TimeLog', { seconds }); // Store the current second in forge storage
             } catch (error) {
                 console.error('Error invoking function:', error);
             }
+            setPopUp(false);
         }
     };
 
