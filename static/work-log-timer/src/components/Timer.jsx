@@ -3,7 +3,6 @@ import { FiRefreshCw } from "react-icons/fi";
 import { useEffect, useRef, useState } from "react";
 import DescriptionPopup from "./DescriptionPopup";
 import { invoke } from '@forge/bridge'
-// import { storage } from "@forge/api";
 
 let initialTime = {
     d: 0,
@@ -46,19 +45,42 @@ const isTimePresent = async () => {
     return isPresent;
 }
 
-const timeToDisplay = async () => {
+// const timeToDisplay = async () => {
+//     let timeStored = 0;
+//     if (await isTimePresent()) {  // Await isTimePresent
+//         try {
+//             const { timeToDisplay, isRunning } = await invoke('GET TimeLog'); // Fetch both time and running status
+//             timeStored = timeToDisplay;
+//             return { time: secondsToTimeFormat(timeStored), isRunning };
+//         } catch (error) {
+//             console.error('Error invoking function:', error);
+//         }
+//     }
+//     return { time: initialTime, isRunning: false };
+// };
+
+const timeToDisplay = () => {
     let timeStored = 0;
-    if (await isTimePresent()) {  // Await isTimePresent
-        try {
-            const { timeToDisplay, isRunning } = await invoke('GET TimeLog'); // Fetch both time and running status
-            timeStored = timeToDisplay;
-            return { time: secondsToTimeFormat(timeStored), isRunning };
-        } catch (error) {
-            console.error('Error invoking function:', error);
+    
+    // Check if time is present
+    return isTimePresent().then(isPresent => {
+        if (isPresent) {
+            // If time is present, invoke the 'GET TimeLog' function
+            return invoke('GET TimeLog')
+                .then(({ timeToDisplay, isRunning }) => {
+                    timeStored = timeToDisplay;
+                    return { time: secondsToTimeFormat(timeStored), isRunning };
+                })
+                .catch(error => {
+                    console.error('Error invoking function:', error);
+                    // You may return a default value or rethrow the error as needed
+                    return { time: initialTime, isRunning: false }; // Handle error
+                });
         }
-    } 
-    return { time: initialTime, isRunning: false };
+        return { time: initialTime, isRunning: false }; // If time is not present
+    });
 };
+
 
 // const startButtonState = async () => {
 //     let {timeToDisplayValue, timerRunning} = await timeToDisplay();
@@ -93,48 +115,37 @@ function Timer() {
         setTime(secondsToTimeFormat(seconds));
     }, [seconds])
 
-    // When 'Browser' is re-loaded
-    // Fetch the time from forge storage if present
+    // When 'Browser' is re-loaded and some entry of 'time' was there in storage
+    // Fetch the time from forge storage...
     useEffect(() => {
         async function fetchTime() {
-            const { time: fetchedTime, isRunning: wasRunning } = await timeToDisplay()
-            // .then((fetchedTime, runningStatus) => {
-            //     console.log("Entered in dot then")
-            //     setTime(fetchedTime);
-            // })
-
-            // If 'timer' was running at the backend
-            if (wasRunning) {
-                // Reverse conversion from 'time format' to 'seconds'
-                setSeconds(fetchedTime.d * 86400 + fetchedTime.h * 3600 + fetchedTime.m * 60 + fetchedTime.s); 
-                setIsRunning(true); 
-                setStartButton("Start");
-                setButtonEnabled({ Start: false, Stop: true, Log: true, Reset: true });
-            }
-            // If 'timer' was 'paused'
-            else {
-                // console.log("Entered in else condition");
-                // setSeconds(fetchedTime.d * 86400 + fetchedTime.h * 3600 + fetchedTime.m * 60 + fetchedTime.s); 
-                // // Handling Colors and States of Buttons on the behalf of 'time' stored.
-                // if(time == initialTime) {
-                //     console.log("Enterd in first condition");
-                //     setStartButton("Start");
-                //     setButtonEnabled(buttonState);  // Default button State
-                // }
-                // // This condition needs to be re-checked
-                // // Coz it's not working properly, if we pause the time and refresh page.
-                // else {
-                //     console.log("Enterd in second condition");
-                //     setStartButton("Resume");
-                //     setButtonEnabled({ Start: true, Stop: false, Log: true, Reset: true });
-                // }
-                console.log("Enterd in second condition");
-                setStartButton("Resume");
-                setTime(fetchedTime);
-                setSeconds(fetchedTime.d * 86400 + fetchedTime.h * 3600 + fetchedTime.m * 60 + fetchedTime.s);
-                setIsRunning(false);
-                setButtonEnabled({ Start: true, Stop: false, Log: true, Reset: true });
-            }
+            // const { time: fetchedTime, isRunning: wasRunning }
+            timeToDisplay()
+                .then(({ time: fetchedTime, isRunning: wasRunning }) => {
+                    // If 'timer' was running at the backend
+                    if (wasRunning) {
+                        // Reverse conversion from 'time format' to 'seconds'
+                        setSeconds(fetchedTime.d * 86400 + fetchedTime.h * 3600 + fetchedTime.m * 60 + fetchedTime.s);
+                        setIsRunning(true);
+                        setStartButton("Start");
+                        setButtonEnabled({ Start: false, Stop: true, Log: true, Reset: true });
+                    }
+                    // If 'timer' was 'paused'
+                    else {
+                        // If (initialTime != fetchedTime),  then it means time was paused and now it needs to be resumed.
+                        // So, we need to set the start button to 'Resume' and disable the 'Stop
+                        if(fetchedTime != initialTime) {
+                            let storedSeconds = fetchedTime.d * 86400 + fetchedTime.h * 3600 + fetchedTime.m * 60 + fetchedTime.s;
+                            setSeconds(storedSeconds);
+                            setTime(fetchedTime);
+                            setIsRunning(false);
+                            setStartButton("Resume");
+                            setButtonEnabled({ Start: true, Stop: false, Log: true, Reset: true });
+                        }
+                        // IF Clock is 00 : 00 : 00 : 00 
+                        // No need to do anything extra, useState will automatically handle it.
+                    }
+                })
         }
         fetchTime();
     }, []);
@@ -144,13 +155,13 @@ function Timer() {
         console.log("handleStart Function Called now");
 
         if (!isRunning) {
-            
+
             // If 'Start' button was clicked earlier
             // Then get 'newTime' in seconds and setSeconds(newTime);
             // let startButtonClickedBefore = await storage.get(uniqueKey);
 
             // Make this initialization during first render of Front-end.
-      
+
             // setTime(fetchedTime);
             // setSeconds(fetchedTime.d * 86400 + fetchedTime.h * 3600 + fetchedTime.m * 60 + fetchedTime.s); 
             setIsRunning(true);
@@ -163,11 +174,11 @@ function Timer() {
             // Store current State of Time in Backend...
             try {
                 invoke('SET TimeLog', { seconds }) // Store the current second in forge storage
-                .then((data) => {
-                        if(data.success) {
+                    .then((data) => {
+                        if (data.success) {
                             console.log("Data Stored in Backend");
                         }
-                })
+                    })
             } catch (error) {
                 console.error('Error invoking function:', error);
             }
@@ -181,9 +192,10 @@ function Timer() {
             setStartButton("Resume");
             // If Stop Button is clicked, Disable 'Stop' and enable all other three buttons
             // Make Start Button as "Resume" Button
-            setButtonEnabled({Start: true, Stop: false, Log: true, Reset: true });
+            setButtonEnabled({ Start: true, Stop: false, Log: true, Reset: true });
             try {
-                await invoke('UPDATE TimeLog', { seconds }); // Store updated time in forge storage
+                let elapsedTimeLog = Math.floor(new Date().getTime() / 1000);
+                await invoke('UPDATE TimeLog', { elapsedTimeLog }); // Store updated time in forge storage
             } catch (error) {
                 console.error('Error invoking function:', error);
             }

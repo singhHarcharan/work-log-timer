@@ -66,7 +66,7 @@ resolver.define('GET TimeLog', async (req) => {
 
   // If the timer is still running, add the difference to the stored time
   if (startTimeLog !== null) {
-      newTimeToDisplay += (currTime - startTimeLog);
+      newTimeToDisplay += Math.floor(currTime - startTimeLog);
       isRunning = true;
   }
 
@@ -91,10 +91,10 @@ resolver.define('UPDATE TimeLog', async (req) => {
   if (value != null) {
       let [startTimeLog, storedSeconds] = value;
       // Calculate the elapsed time since the last start
-      let currTimeLog = Math.floor(new Date().getTime() / 1000);
-      let newElapsedTime = currTimeLog - startTimeLog;
+      let prevTimeLog = req.payload.elapsedTimeLog;
+      let newTimeInSeconds = Math.floor(prevTimeLog - startTimeLog);
       // Update the stored seconds with the new elapsed time and clear the start time
-      await storage.set(uniqueKey, [null, storedSeconds + newElapsedTime]);
+      await storage.set(uniqueKey, [null, Math.floor(storedSeconds + newTimeInSeconds)]);
 
       console.log("ON Clicking Stop, Stored values are ", await storage.get(uniqueKey));
   }
