@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import './ButtonContainer.css'
+import NotificationPopUp from './NotificationPopUp';
 
 let normalButtonStyle = {
     backgroundColor: "#0a66e4",
@@ -24,25 +25,82 @@ function ButtonContainer({
     handleLog, 
     isButtonEnabled }) 
 {
+    const [notificationPopUpMessage, setNotificationPopUpMessage] = useState('');
+    const [showNotificationPopUp, setShowNotificationPopUp] = useState(false);
+
+    const handleStartClick = () => {
+        handleStart();
+        setTimeout(() => {
+            setNotificationPopUpMessage('Timer Started Successfully');
+            setShowNotificationPopUp(true);
+        }, 1000); // Show the pop-up after 1 second
+
+        // Hide the pop-up after 5 seconds
+        setTimeout(() => {
+            setShowNotificationPopUp(false);
+        }, 5000);
+    };
+
+    const handleStopClick = () => {
+        handleStop();
+        setTimeout(() => {
+            setNotificationPopUpMessage('Timer Paused Successfully');
+            setShowNotificationPopUp(true);
+        }, 1000); // Show the pop-up after 1 second
+
+        // Hide the pop-up after 5 seconds
+        setTimeout(() => {
+            setShowNotificationPopUp(false);
+        }, 5000);
+    };
+
+    const closePopup = () => {
+        setShowNotificationPopUp(false);
+    };
+
     return <div className='button-group' style={{
         display: 'flex',
         flexDirection:'column'
     }}>
-        <button className='start-button' style={isButtonEnabled.Start? normalButtonStyle : disabledButtonStyle} onClick={handleStart} >
-            {startButton}
-        </button>
-        <button className='stop-button' style={isButtonEnabled.Stop? normalButtonStyle: disabledButtonStyle} onClick={handleStop} >
-            Stop
-        </button>
-        <button className='log-button' style={isButtonEnabled.Log? normalButtonStyle: disabledButtonStyle} onClick={handleLog} >
-            Log
-        </button>
-        <button className='reset-button' style={isButtonEnabled.Reset? normalButtonStyle: disabledButtonStyle} onClick={handleReset}>
-            Reset
-        </button>
-        <div>
-            Designed by HS
-        </div>
+        <button 
+                className='start-button' 
+                style={isButtonEnabled.Start ? normalButtonStyle : disabledButtonStyle} 
+                onClick={handleStartClick}
+            >
+                {startButton}
+            </button>
+            <button 
+                className='stop-button' 
+                style={isButtonEnabled.Stop ? normalButtonStyle : disabledButtonStyle} 
+                onClick={handleStopClick}
+            >
+                Stop
+            </button>
+            <button 
+                className='log-button' 
+                style={isButtonEnabled.Log ? normalButtonStyle : disabledButtonStyle} 
+                onClick={handleLog}
+            >
+                Log
+            </button>
+            <button 
+                className='reset-button' 
+                style={isButtonEnabled.Reset ? normalButtonStyle : disabledButtonStyle} 
+                onClick={handleReset}
+            >
+                Reset
+            </button>
+            <div>
+                Developed by HS
+            </div>
+
+            {
+            showNotificationPopUp && 
+
+                <NotificationPopUp
+                message={notificationPopUpMessage} 
+                onClose={closePopup} />
+            }
     </div>
 }
 
