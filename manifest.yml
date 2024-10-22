@@ -13,10 +13,11 @@ modules:
 resources:
   - key: main
     path: static/work-log-timer/build
-    tunnel: 
+    tunnel:
       port: 3000
 permissions:
   scopes:
+    - read:jira-user
     - read:jira-work
     - storage:app
   content:
@@ -27,7 +28,7 @@ permissions:
   external:
     fetch:
       backend:
-        - 'https://fakestoreapi.com/products'
+        - https://fakestoreapi.com/products
 app:
   runtime:
     name: nodejs20.x

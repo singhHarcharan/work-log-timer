@@ -1,6 +1,7 @@
 import Resolver from '@forge/resolver';
+import ProjectService from './service/ProjectService';
 import api, { route } from '@forge/api';
-import { storage } from '@forge/api';
+import { storage, asUser } from '@forge/api';
 // import TimerServiceBe from '../src/service/TimerServiceBe';
 
 // const timerService = new TimerServiceBe();
@@ -10,7 +11,9 @@ const uniqueKey = 'uniqueKey';
 resolver.define('fetchLabels', async (req) => {
   const key = req.context.extension.issue.key;
 
-  const res = await api.asUser().requestJira(route`/rest/api/3/issue/${key}?fields=labels`);
+  const res = await api.asUser().requestJira(
+    route`/rest/api/3/issue/${key}?fields=labels`
+  );
 
   const data = await res.json();
 
@@ -28,21 +31,30 @@ resolver.define('fetchLabels', async (req) => {
 resolver.define('SET TimeLog', async (req) => {
   console.log('SET TimeLog function called successfully');
 
-  // Store the start time and elapsed seconds when the timer starts
+  // Get the current user
+  const user = await api.asUser().requestJira(route`/rest/api/3/myself`);
+  const userData = await user.json()
+  const userId = userData.accountId;
+
+  console.log("UserId is ", userId);
+
+  // Store the start time, elapsed seconds and owner's userId (when the timer starts)
   let currTimeLog = Math.floor(new Date().getTime() / 1000); // Store current time in seconds
   let seconds = req.payload.seconds || 0;  // If 'seconds' is passed, use that, otherwise default to 0
 
   // If storage is empty (timer starting for the first time)
   let value = await storage.get(uniqueKey);
   if (value == null) {
-      await storage.set(uniqueKey, [currTimeLog, seconds]);
+      await storage.set(uniqueKey, { startTime: currTimeLog, seconds: seconds, owner: userId });
+      console.log("ON Clicking Start Button, Stored values are -> ", value);
   } else {
       // If there's already a time log present, update the start time and keep previous seconds
-      let [prevTimeLog, updatedSeconds] = value;
-      await storage.set(uniqueKey, [currTimeLog, updatedSeconds]);
+      // Here we are ignoring the condition where we will be checking
+      // whether the currentUser is the owner of clock or not
+      let { startTime, storedSeconds, owner } = value;
+      await storage.set(uniqueKey, { startTime: currTimeLog, seconds: storedSeconds, owner: userId });
   }
 
-  console.log("ON Clicking Start, Stored values are ", await storage.get(uniqueKey));
 });
 
 
@@ -74,7 +86,6 @@ resolver.define('GET TimeLog', async (req) => {
   return { timeToDisplay: newTimeToDisplay, isRunning: isRunning };
 });
 
-
 // This function simply Checks whether the 'TimeLog' is already present in
 // Storage or not...
 resolver.define('isTimeLogPresent', async (req) => {
@@ -100,13 +111,18 @@ resolver.define('UPDATE TimeLog', async (req) => {
   }
 });
 
-
-
 resolver.define('RESET TimeLog', async (req) => {
   console.log('RESET TimeLog function called successfully');
   // Delete the time log from Forge storage
   await storage.delete(uniqueKey);
   console.log('Timer has been reset and removed from storage.');
+});
+
+resolver.define('getCurrentUser', async () => {
+  const res = await api.asUser().requestJira(route`/rest/api/3/myself`);
+  const data = await res.json();
+  console.log("Current User's Detail -> ", data);
+  return data;
 });
 
 
