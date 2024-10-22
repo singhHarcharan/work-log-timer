@@ -168,17 +168,20 @@ function Timer() {
             setButtonEnabled({ Start: false, Stop: true, Log: true, Reset: true });
             setStartButton("Start");
             setPopUp(false);
+            // const data = await invoke('getCurrentUser')
+            
             // If Start Button is clicked, Disable 'start' and enable all other three buttons
             // After hittin stop buttons, 'start' should become 'resume'
             // but after hitting 'resume', it should become 'start' again
             // Store current State of Time in Backend...
             try {
-                invoke('SET TimeLog', { seconds }) // Store the current second in forge storage
-                    .then((data) => {
-                        if (data.success) {
-                            console.log("Data Stored in Backend");
-                        }
+                invoke('SET TimeLog', { seconds })
+                    .then(() => {
+                        console.log("Data Stored in Backend");
                     })
+                    .catch((error) => {
+                        console.error('Error in .then():', error);
+                    });
             } catch (error) {
                 console.error('Error invoking function:', error);
             }
