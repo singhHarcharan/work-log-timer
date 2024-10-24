@@ -5,11 +5,11 @@
   "license": "MIT",
   "private": true,
   "devDependencies": {
-    "eslint": "^8.56.0",
-    "eslint-plugin-react-hooks": "^4.6.0"
+
   },
   "dependencies": {
     "@forge/api": "^3.8.1-experimental-1828c63",
-    "@forge/resolver": "1.5.39"
+    "@forge/resolver": "1.5.39",
+    "@forge/ui": "^1.11.1"
   }
 }

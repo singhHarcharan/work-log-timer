@@ -2,9 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { events, invoke } from '@forge/bridge';
 import Timer from './components/Timer';
 // import './components/ButtonContainer/ButtonContainer.css'
-import './index.css'
-
-
+import './index.css';
 
 function App() {
   // const [data, setData] = useState(null);

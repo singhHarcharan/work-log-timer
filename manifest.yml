@@ -19,6 +19,7 @@ permissions:
   scopes:
     - read:jira-user
     - read:jira-work
+    - read:me
     - storage:app
   content:
     scripts:
