@@ -1,13 +1,12 @@
 import React from 'react';
 
 function DescriptionPopup({ setPopUp }) {
-
   function onClose() {
     setPopUp(false);
   }
   return (
     <div
-    className="popup"
+      className='popup'
       style={{
         position: 'fixed',
         top: '0',
@@ -22,7 +21,7 @@ function DescriptionPopup({ setPopUp }) {
       }}
     >
       <div
-      className="popup-content"
+        className='popup-content'
         style={{
           width: '60%',
           height: '50%',
@@ -33,15 +32,15 @@ function DescriptionPopup({ setPopUp }) {
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
-          borderRadius:"5px"
+          borderRadius: '5px',
         }}
       >
-        {console.log("Entering in Description PopUP")}
+        {console.log('Entering in Description PopUP')}
         <h3 style={{ textAlign: 'left', marginLeft: '20px' }}>Description</h3>
 
         {/* Close (X) button */}
         <button
-        className="close-button"
+          className='close-button'
           onClick={onClose}
           style={{
             position: 'absolute',
@@ -58,11 +57,11 @@ function DescriptionPopup({ setPopUp }) {
         </button>
 
         <input
-          type="text"
-          placeholder="Work Log Description"
+          type='text'
+          placeholder='Work Log Description'
           style={{
             // width: 'calc(100% - 40px)', // Full width minus padding on both sides
-            width:"90%",
+            width: '90%',
             marginLeft: '20px',
             marginRight: '20px',
             padding: '10px',
@@ -70,11 +69,11 @@ function DescriptionPopup({ setPopUp }) {
             color: 'black',
             border: 'none',
             borderRadius: '5px',
-            border:'none'
+            border: 'none',
           }}
         />
         <button
-        className="submit-btn"
+          className='submit-btn'
           style={{
             alignSelf: 'center',
             marginTop: '20px',
